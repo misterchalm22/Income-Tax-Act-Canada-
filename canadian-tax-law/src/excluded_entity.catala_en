@@ -8,71 +8,6 @@ declaration module ExcludedEntityDefinition
 
 ```
 
-Source Law Text
-===============
-
-```text
-excluded entity for a particular taxation year means
-
-(a) a corporation that is throughout the particular year a Canadian-controlled private corporation in respect of which the amount determined for C in paragraph 125(5.1)(a) for the year is less than $50,000,000;
-
-(b) a particular taxpayer resident in Canada, if $1,000,000 is not less than the amount determined by the formula
-
-A − B
-
-where
-
-A
-is the total of all amounts, each of which is the interest and financing expenses or the exempt interest and financing expenses of
-(i) the particular taxpayer for the particular taxation year, or
-
-(ii) another taxpayer resident in Canada for a taxation year (referred to in this subparagraph as the “relevant taxation year”) ending in the particular taxation year, if the other taxpayer is an eligible group entity in respect of the particular taxpayer at the end of the relevant taxation year, and
-
-B
-is the amount that would be determined for A if
-(i) the reference in the description of A to “the interest and financing expenses or the exempt interest and financing expenses” were read as a reference to “the interest and financing revenues”, and
-
-(ii) the interest and financing revenues of a financial institution group entity were excluded; or
-
-(c) a taxpayer resident in Canada if
-
-(i) all or substantially all of the businesses, if any, and all or substantially all of the undertakings and activities of
-
-(A) the taxpayer are, throughout the particular year, carried on in Canada, and
-
-(B) each eligible group entity in respect of the taxpayer are, throughout the eligible group entity’s taxation year that ends in the particular year, carried on in Canada,
-
-(ii) throughout the year, it is the case that
-
-A ≥ B
-
-where
-
-A
-is $5,000,000, and
-B
-is the greater of
-(A) the total of all amounts, each of which is the amount at which the shares of the capital stock of a foreign affiliate of the taxpayer, a foreign affiliate of an eligible group entity in respect of the taxpayer or a foreign affiliate of a partnership of which the taxpayer or an eligible group entity in respect of the taxpayer is a member, would be valued for the purpose of the balance sheet of the taxpayer or the eligible group entity if that balance sheet were prepared in accordance with generally accepted accounting principles used in Canada, other than any amount or portion of an amount that is already included under this clause because the value of the shares of the capital stock of a particular foreign affiliate reflects the value of shares of the capital stock of another foreign affiliate that is owned, directly or indirectly, by the particular foreign affiliate, or
-
-(B) the total of all amounts, each of which is the amount that can reasonably be considered to be the proportionate share, of the taxpayer or an eligible group entity in respect of the taxpayer, of the fair market value of all property of a foreign affiliate of the taxpayer, a foreign affiliate of an eligible group entity in respect of the taxpayer or a foreign affiliate of a partnership of which the taxpayer or an eligible group entity in respect of the taxpayer is a member, other than a property that is shares of the capital stock of another corporation that is a foreign affiliate of the taxpayer, a foreign affiliate of an eligible group entity in respect of the taxpayer or a foreign affiliate of a partnership of which the taxpayer or an eligible group entity in respect of the taxpayer is a member,
-
-(iii) no person or partnership is, at any time in the particular year,
-
-(A) a specified shareholder or a specified beneficiary (as those terms are defined in subsection 18(5)) of the taxpayer, or of any eligible group entity in respect of the taxpayer, that is not resident in Canada, or
-
-(B) a partnership more than 50% of the fair market value of all interests in which can reasonably be considered to be held, directly or indirectly through one or more trusts or partnerships, by non-resident persons, if the property of the partnership includes,
-
-(I) if the taxpayer or the eligible group entity in respect of the taxpayer is a corporation, shares, or a right to acquire shares, of the capital stock of the taxpayer or an eligible group entity in respect of the taxpayer that, either alone or together with shares, or rights to acquire shares, held by persons or partnerships with whom the partnership does not deal at arm’s length,
-
-1 provide 25% or more of the votes that could be cast at an annual meeting of the shareholders of the corporation, or
-
-2 have 25% or more of the fair market value of all capital stock in the corporation, or
-
-(II) if the taxpayer or the eligible group entity in respect of the taxpayer is a trust, an interest, or a right to acquire an interest, as a beneficiary in the taxpayer or an eligible group entity in respect of the taxpayer that, either alone or together with interests, or rights to acquire interests, held by persons or partnerships with whom the partnership does not deal at arm’s length, has 25% or more of the fair market value of all interests as a beneficiary in the trust, and
-
-(iv) all or substantially all of the interest and financing expenses of the taxpayer and of each eligible group entity in respect of the taxpayer for the particular year are paid or payable to persons or partnerships that are not, at any time in the particular year, tax-indifferent persons or partnerships that do not deal at arm’s length with the taxpayer or any eligible group entity in respect of the taxpayer. (entité exclue)
-```
-
 Catala Implementation
 ====================
 
@@ -170,7 +105,16 @@ scope MoneyOperators:
   definition /(m1: Money, m2: Money) returns decimal:
     if m2.value = 0 then decimal(0, 2) else (decimal_of_integer(m1.value) / decimal_of_integer(m2.value))
 
+```
 
+Source Law Text
+===============
+
+```text
+excluded entity for a particular taxation year means
+```
+
+```catala
 scope IsExcludedEntity:
   input taxpayer: Taxpayer
   input particular_taxation_year: Date
@@ -180,12 +124,40 @@ scope IsExcludedEntity:
     condition_a or
     condition_b or
     condition_c
+```
 
+```text
+(a) a corporation that is throughout the particular year a Canadian-controlled private corporation in respect of which the amount determined for C in paragraph 125(5.1)(a) for the year is less than $50,000,000;
+```
+
+```catala
   definition condition_a under context:
     taxpayer.taxpayer_type = Corporation and
     taxpayer.is_ccpc and
     taxpayer.amount_c_125_5_1_a < money(value = 50000000)
+```
 
+```text
+(b) a particular taxpayer resident in Canada, if $1,000,000 is not less than the amount determined by the formula
+
+A − B
+
+where
+
+A
+is the total of all amounts, each of which is the interest and financing expenses or the exempt interest and financing expenses of
+(i) the particular taxpayer for the particular taxation year, or
+
+(ii) another taxpayer resident in Canada for a taxation year (referred to in this subparagraph as the “relevant taxation year”) ending in the particular taxation year, if the other taxpayer is an eligible group entity in respect of the particular taxpayer at the end of the relevant taxation year, and
+
+B
+is the amount that would be determined for A if
+(i) the reference in the description of A to “the interest and financing expenses or the exempt interest and financing expenses” were read as a reference to “the interest and financing revenues”, and
+
+(ii) the interest and financing revenues of a financial institution group entity were excluded; or
+```
+
+```catala
   definition condition_b under context:
     taxpayer.is_resident_in_canada and
     money(value = 1000000) >= (b_formula_A - b_formula_B)
@@ -209,7 +181,49 @@ scope IsExcludedEntity:
       e.interest_and_financing_revenues
 
   context b_formula_B = b_formula_B_taxpayer + b_formula_B_group
+```
 
+```text
+(c) a taxpayer resident in Canada if
+
+(i) all or substantially all of the businesses, if any, and all or substantially all of the undertakings and activities of
+
+(A) the taxpayer are, throughout the particular year, carried on in Canada, and
+
+(B) each eligible group entity in respect of the taxpayer are, throughout the eligible group entity’s taxation year that ends in the particular year, carried on in Canada,
+
+(ii) throughout the year, it is the case that
+
+A ≥ B
+
+where
+
+A
+is $5,000,000, and
+B
+is the greater of
+(A) the total of all amounts, each of which is the amount at which the shares of the capital stock of a foreign affiliate of the taxpayer, a foreign affiliate of an eligible group entity in respect of the taxpayer or a foreign affiliate of a partnership of which the taxpayer or an eligible group entity in respect of the taxpayer is a member, would be valued for the purpose of the balance sheet of the taxpayer or the eligible group entity if that balance sheet were prepared in accordance with generally accepted accounting principles used in Canada, other than any amount or portion of an amount that is already included under this clause because the value of the shares of the capital stock of a particular foreign affiliate reflects the value of shares of the capital stock of another foreign affiliate that is owned, directly or indirectly, by the particular foreign affiliate, or
+
+(B) the total of all amounts, each of which is the amount that can reasonably be considered to be the proportionate share, of the taxpayer or an eligible group entity in respect of the taxpayer, of the fair market value of all property of a foreign affiliate of the taxpayer, a foreign affiliate of an eligible group entity in respect of the taxpayer or a foreign affiliate of a partnership of which the taxpayer or an eligible group entity in respect of the taxpayer is a member, other than a property that is shares of the capital stock of another corporation that is a foreign affiliate of the taxpayer, a foreign affiliate of an eligible group entity in respect of the taxpayer or a foreign affiliate of a partnership of which the taxpayer or an eligible group entity in respect of the taxpayer is a member,
+
+(iii) no person or partnership is, at any time in the particular year,
+
+(A) a specified shareholder or a specified beneficiary (as those terms are defined in subsection 18(5)) of the taxpayer, or of any eligible group entity in respect of the taxpayer, that is not resident in Canada, or
+
+(B) a partnership more than 50% of the fair market value of all interests in which can reasonably be considered to be held, directly or indirectly through one or more trusts or partnerships, by non-resident persons, if the property of the partnership includes,
+
+(I) if the taxpayer or the eligible group entity in respect of the taxpayer is a corporation, shares, or a right to acquire shares, of the capital stock of the taxpayer or an eligible group entity in respect of the taxpayer that, either alone or together with shares, or rights to acquire shares, held by persons or partnerships with whom the partnership does not deal at arm’s length,
+
+1 provide 25% or more of the votes that could be cast at an annual meeting of the shareholders of the corporation, or
+
+2 have 25% or more of the fair market value of all capital stock in the corporation, or
+
+(II) if the taxpayer or the eligible group entity in respect of the taxpayer is a trust, an interest, or a right to acquire an interest, as a beneficiary in the taxpayer or an eligible group entity in respect of the taxpayer that, either alone or together with interests, or rights to acquire interests, held by persons or partnerships with whom the partnership does not deal at arm’s length, has 25% or more of the fair market value of all interests as a beneficiary in the trust, and
+
+(iv) all or substantially all of the interest and financing expenses of the taxpayer and of each eligible group entity in respect of the taxpayer for the particular year are paid or payable to persons or partnerships that are not, at any time in the particular year, tax-indifferent persons or partnerships that do not deal at arm’s length with the taxpayer or any eligible group entity in respect of the taxpayer. (entité exclue)
+```
+
+```catala
   definition condition_c under context:
     taxpayer.is_resident_in_canada and
     c_condition_i and
@@ -264,5 +278,4 @@ scope IsExcludedEntity:
     all e in taxpayer.eligible_group_entities:
       not e.interest_expenses_paid_to_non_arm_length_tax_indifferent
   context c_condition_iv = c_condition_iv_taxpayer and c_condition_iv_group
-
 ```

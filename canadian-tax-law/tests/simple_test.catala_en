@@ -1,0 +1,35 @@
+```catala
+use ExcludedEntityDefinition
+
+scope test_condition_a_pass #[test]:
+  input dummy: unit
+  output result: boolean
+
+  context default_taxpayer = {
+    taxpayer_type = Corporation;
+    is_resident_in_canada = true;
+    is_ccpc = false;
+    amount_c_125_5_1_a = money(value=0);
+    interest_and_financing_expenses = money(value=0);
+    exempt_interest_and_financing_expenses = money(value=0);
+    interest_and_financing_revenues = money(value=0);
+    business_carried_on_in_canada = true;
+    is_specified_shareholder_or_beneficiary_non_resident = false;
+    interest_expenses_paid_to_non_arm_length_tax_indifferent = false;
+    eligible_group_entities = [];
+    foreign_affiliates = [];
+    partnerships = [];
+  }
+
+  context taxpayer_a_pass = default_taxpayer with
+    is_ccpc = true;
+    amount_c_125_5_1_a = money(value=49_000_000);
+
+  result = IsExcludedEntity(
+    taxpayer = taxpayer_a_pass,
+    particular_taxation_year = date(2023, 1, 1)
+  )
+
+  fixed point precision = 2
+  assertion result = true
+```
