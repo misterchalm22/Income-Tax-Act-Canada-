@@ -1,0 +1,268 @@
+Legislative Reference
+=====================
+
+This Catala code implements the definition of an "excluded entity" for a particular taxation year.
+
+```catala
+declaration module ExcludedEntityDefinition
+
+```
+
+Source Law Text
+===============
+
+```text
+excluded entity for a particular taxation year means
+
+(a) a corporation that is throughout the particular year a Canadian-controlled private corporation in respect of which the amount determined for C in paragraph 125(5.1)(a) for the year is less than $50,000,000;
+
+(b) a particular taxpayer resident in Canada, if $1,000,000 is not less than the amount determined by the formula
+
+A − B
+
+where
+
+A
+is the total of all amounts, each of which is the interest and financing expenses or the exempt interest and financing expenses of
+(i) the particular taxpayer for the particular taxation year, or
+
+(ii) another taxpayer resident in Canada for a taxation year (referred to in this subparagraph as the “relevant taxation year”) ending in the particular taxation year, if the other taxpayer is an eligible group entity in respect of the particular taxpayer at the end of the relevant taxation year, and
+
+B
+is the amount that would be determined for A if
+(i) the reference in the description of A to “the interest and financing expenses or the exempt interest and financing expenses” were read as a reference to “the interest and financing revenues”, and
+
+(ii) the interest and financing revenues of a financial institution group entity were excluded; or
+
+(c) a taxpayer resident in Canada if
+
+(i) all or substantially all of the businesses, if any, and all or substantially all of the undertakings and activities of
+
+(A) the taxpayer are, throughout the particular year, carried on in Canada, and
+
+(B) each eligible group entity in respect of the taxpayer are, throughout the eligible group entity’s taxation year that ends in the particular year, carried on in Canada,
+
+(ii) throughout the year, it is the case that
+
+A ≥ B
+
+where
+
+A
+is $5,000,000, and
+B
+is the greater of
+(A) the total of all amounts, each of which is the amount at which the shares of the capital stock of a foreign affiliate of the taxpayer, a foreign affiliate of an eligible group entity in respect of the taxpayer or a foreign affiliate of a partnership of which the taxpayer or an eligible group entity in respect of the taxpayer is a member, would be valued for the purpose of the balance sheet of the taxpayer or the eligible group entity if that balance sheet were prepared in accordance with generally accepted accounting principles used in Canada, other than any amount or portion of an amount that is already included under this clause because the value of the shares of the capital stock of a particular foreign affiliate reflects the value of shares of the capital stock of another foreign affiliate that is owned, directly or indirectly, by the particular foreign affiliate, or
+
+(B) the total of all amounts, each of which is the amount that can reasonably be considered to be the proportionate share, of the taxpayer or an eligible group entity in respect of the taxpayer, of the fair market value of all property of a foreign affiliate of the taxpayer, a foreign affiliate of an eligible group entity in respect of the taxpayer or a foreign affiliate of a partnership of which the taxpayer or an eligible group entity in respect of the taxpayer is a member, other than a property that is shares of the capital stock of another corporation that is a foreign affiliate of the taxpayer, a foreign affiliate of an eligible group entity in respect of the taxpayer or a foreign affiliate of a partnership of which the taxpayer or an eligible group entity in respect of the taxpayer is a member,
+
+(iii) no person or partnership is, at any time in the particular year,
+
+(A) a specified shareholder or a specified beneficiary (as those terms are defined in subsection 18(5)) of the taxpayer, or of any eligible group entity in respect of the taxpayer, that is not resident in Canada, or
+
+(B) a partnership more than 50% of the fair market value of all interests in which can reasonably be considered to be held, directly or indirectly through one or more trusts or partnerships, by non-resident persons, if the property of the partnership includes,
+
+(I) if the taxpayer or the eligible group entity in respect of the taxpayer is a corporation, shares, or a right to acquire shares, of the capital stock of the taxpayer or an eligible group entity in respect of the taxpayer that, either alone or together with shares, or rights to acquire shares, held by persons or partnerships with whom the partnership does not deal at arm’s length,
+
+1 provide 25% or more of the votes that could be cast at an annual meeting of the shareholders of the corporation, or
+
+2 have 25% or more of the fair market value of all capital stock in the corporation, or
+
+(II) if the taxpayer or the eligible group entity in respect of the taxpayer is a trust, an interest, or a right to acquire an interest, as a beneficiary in the taxpayer or an eligible group entity in respect of the taxpayer that, either alone or together with interests, or rights to acquire interests, held by persons or partnerships with whom the partnership does not deal at arm’s length, has 25% or more of the fair market value of all interests as a beneficiary in the trust, and
+
+(iv) all or substantially all of the interest and financing expenses of the taxpayer and of each eligible group entity in respect of the taxpayer for the particular year are paid or payable to persons or partnerships that are not, at any time in the particular year, tax-indifferent persons or partnerships that do not deal at arm’s length with the taxpayer or any eligible group entity in respect of the taxpayer. (entité exclue)
+```
+
+Catala Implementation
+====================
+
+```catala
+declaration struct Money {
+  value: integer;
+}
+
+declaration struct Date {
+  year: integer;
+  month: integer;
+  day: integer;
+}
+
+declaration struct Percentage {
+  value: decimal;
+}
+
+declaration enum TaxpayerType {
+  Corporation;
+  Trust;
+}
+
+declaration struct Person {
+  is_resident_in_canada: boolean;
+  is_tax_indifferent: boolean;
+}
+
+declaration struct PartnershipInterest {
+  owner: Person;
+  value: Money;
+}
+
+declaration struct Partnership {
+  interests: list<PartnershipInterest>;
+  property_includes_significant_shares: boolean;
+}
+
+declaration struct ForeignAffiliate {
+  shares_book_value: Money;
+  property_fmv: Money;
+}
+
+declaration struct EligibleGroupEntity {
+  is_resident_in_canada: boolean;
+  is_financial_institution_group_entity: boolean;
+  business_carried_on_in_canada: boolean;
+  interest_and_financing_expenses: Money;
+  exempt_interest_and_financing_expenses: Money;
+  interest_and_financing_revenues: Money;
+  foreign_affiliates: list<ForeignAffiliate>;
+  is_specified_shareholder_or_beneficiary_non_resident: boolean;
+  interest_expenses_paid_to_non_arm_length_tax_indifferent: boolean;
+}
+
+declaration struct Taxpayer {
+  taxpayer_type: TaxpayerType;
+  is_resident_in_canada: boolean;
+  is_ccpc: boolean;
+  amount_c_125_5_1_a: Money;
+  interest_and_financing_expenses: Money;
+  exempt_interest_and_financing_expenses: Money;
+  interest_and_financing_revenues: Money;
+  business_carried_on_in_canada: boolean;
+  is_specified_shareholder_or_beneficiary_non_resident: boolean;
+  interest_expenses_paid_to_non_arm_length_tax_indifferent: boolean;
+  eligible_group_entities: list<EligibleGroupEntity>;
+  foreign_affiliates: list<ForeignAffiliate>;
+  partnerships: list<Partnership>;
+}
+
+declaration function money(value: integer) returns Money
+declaration function money_from_decimal(value: decimal) returns Money
+
+operator + for Money (m1: Money, m2: Money) returns Money
+operator - for Money (m1: Money, m2: Money) returns Money
+operator < for Money (m1: Money, m2: Money) returns boolean
+operator >= for Money (m1: Money, m2: Money) returns boolean
+operator / for Money (m1: Money, m2: Money) returns decimal
+
+scope MoneyOperators:
+  definition money(value: integer) returns Money:
+    { value = value }
+  definition money_from_decimal(value: decimal) returns Money:
+    { value = integer_of_decimal(round(value)) }
+
+  definition +(m1: Money, m2: Money) returns Money:
+    { value = m1.value + m2.value }
+  definition -(m1: Money, m2: Money) returns Money:
+    { value = m1.value - m2.value }
+  definition <(m1: Money, m2: Money) returns boolean:
+    m1.value < m2.value
+  definition >=(m1: Money, m2: Money) returns boolean:
+    m1.value >= m2.value
+  definition /(m1: Money, m2: Money) returns decimal:
+    if m2.value = 0 then decimal(0, 2) else (decimal_of_integer(m1.value) / decimal_of_integer(m2.value))
+
+
+scope IsExcludedEntity:
+  input taxpayer: Taxpayer
+  input particular_taxation_year: Date
+  output result: boolean
+
+  result depends on
+    condition_a or
+    condition_b or
+    condition_c
+
+  definition condition_a under context:
+    taxpayer.taxpayer_type = Corporation and
+    taxpayer.is_ccpc and
+    taxpayer.amount_c_125_5_1_a < money(value = 50000000)
+
+  definition condition_b under context:
+    taxpayer.is_resident_in_canada and
+    money(value = 1000000) >= (b_formula_A - b_formula_B)
+
+  context b_formula_A_taxpayer =
+    taxpayer.interest_and_financing_expenses +
+    taxpayer.exempt_interest_and_financing_expenses
+
+  context b_formula_A_group =
+    sum over e in taxpayer.eligible_group_entities:
+      e.interest_and_financing_expenses +
+      e.exempt_interest_and_financing_expenses
+
+  context b_formula_A = b_formula_A_taxpayer + b_formula_A_group
+
+  context b_formula_B_taxpayer = taxpayer.interest_and_financing_revenues
+
+  context b_formula_B_group =
+    sum over e in taxpayer.eligible_group_entities
+    such that not e.is_financial_institution_group_entity:
+      e.interest_and_financing_revenues
+
+  context b_formula_B = b_formula_B_taxpayer + b_formula_B_group
+
+  definition condition_c under context:
+    taxpayer.is_resident_in_canada and
+    c_condition_i and
+    c_condition_ii and
+    c_condition_iii and
+    c_condition_iv
+
+  context c_condition_i_taxpayer = taxpayer.business_carried_on_in_canada
+  context c_condition_i_group =
+    all e in taxpayer.eligible_group_entities:
+      e.business_carried_on_in_canada
+  context c_condition_i = c_condition_i_taxpayer and c_condition_i_group
+
+  context c_condition_ii_A = money(value = 5000000)
+  context c_condition_ii_B_A_taxpayer =
+    sum over fa in taxpayer.foreign_affiliates: fa.shares_book_value
+  context c_condition_ii_B_A_group =
+    sum over e in taxpayer.eligible_group_entities:
+      sum over fa in e.foreign_affiliates: fa.shares_book_value
+  context c_condition_ii_B_A = c_condition_ii_B_A_taxpayer + c_condition_ii_B_A_group
+
+  context c_condition_ii_B_B_taxpayer =
+    sum over fa in taxpayer.foreign_affiliates: fa.property_fmv
+  context c_condition_ii_B_B_group =
+    sum over e in taxpayer.eligible_group_entities:
+      sum over fa in e.foreign_affiliates: fa.property_fmv
+  context c_condition_ii_B_B = c_condition_ii_B_B_taxpayer + c_condition_ii_B_B_group
+
+  context c_condition_ii_B =
+    if c_condition_ii_B_A > c_condition_ii_B_B then c_condition_ii_B_A else c_condition_ii_B_B
+
+  context c_condition_ii = c_condition_ii_A >= c_condition_ii_B
+
+  context c_condition_iii_A_taxpayer = not taxpayer.is_specified_shareholder_or_beneficiary_non_resident
+  context c_condition_iii_A_group =
+    all e in taxpayer.eligible_group_entities:
+      not e.is_specified_shareholder_or_beneficiary_non_resident
+  context c_condition_iii_A = c_condition_iii_A_taxpayer and c_condition_iii_A_group
+
+  context c_condition_iii_B =
+    all p in taxpayer.partnerships:
+      let non_resident_holdings_value =
+        sum over i in p.interests such that not i.owner.is_resident_in_canada: i.value
+      in
+      let total_holdings_value = sum over i in p.interests: i.value in
+      (non_resident_holdings_value / total_holdings_value) <= decimal(50, 2) or not p.property_includes_significant_shares
+
+  context c_condition_iii = c_condition_iii_A and c_condition_iii_B
+
+  context c_condition_iv_taxpayer = not taxpayer.interest_expenses_paid_to_non_arm_length_tax_indifferent
+  context c_condition_iv_group =
+    all e in taxpayer.eligible_group_entities:
+      not e.interest_expenses_paid_to_non_arm_length_tax_indifferent
+  context c_condition_iv = c_condition_iv_taxpayer and c_condition_iv_group
+
+```

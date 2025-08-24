@@ -1,0 +1,8 @@
+[project]
+include_dirs = [ "src" ]
+build_dir    = "_build"
+
+[[target]]
+name = "canadian-tax-law"
+modules = [ "ExcludedEntityDefinition" ]
+tests = [ "tests/test_excluded_entity.catala_en" ]

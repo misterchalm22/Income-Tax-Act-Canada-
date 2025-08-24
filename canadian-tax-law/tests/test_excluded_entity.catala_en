@@ -1,0 +1,159 @@
+```catala
+declaration module TestExcludedEntity
+
+use ExcludedEntityDefinition
+
+scope default_money_ops includes MoneyOperators
+
+```
+
+Test Cases
+==========
+
+This file contains test cases for the `IsExcludedEntity` scope.
+
+```catala
+
+context default_taxpayer = {
+  taxpayer_type = Corporation;
+  is_resident_in_canada = true;
+  is_ccpc = false;
+  amount_c_125_5_1_a = money(value=0);
+  interest_and_financing_expenses = money(value=0);
+  exempt_interest_and_financing_expenses = money(value=0);
+  interest_and_financing_revenues = money(value=0);
+  business_carried_on_in_canada = true;
+  is_specified_shareholder_or_beneficiary_non_resident = false;
+  interest_expenses_paid_to_non_arm_length_tax_indifferent = false;
+  eligible_group_entities = [];
+  foreign_affiliates = [];
+  partnerships = [];
+}
+
+scope test_condition_a_pass #[test]:
+  input dummy: unit
+  output result: boolean
+
+  context taxpayer_a_pass = default_taxpayer with
+    is_ccpc = true;
+    amount_c_125_5_1_a = money(value=49_000_000);
+
+  result = IsExcludedEntity(
+    taxpayer = taxpayer_a_pass,
+    particular_taxation_year = date(2023, 1, 1)
+  )
+
+  fixed point precision = 2
+  assertion result = true
+
+scope test_condition_a_fail_income #[test]:
+  input dummy: unit
+  output result: boolean
+
+  context taxpayer_a_fail = default_taxpayer with
+    is_ccpc = true;
+    amount_c_125_5_1_a = money(value=51_000_000);
+
+  result = IsExcludedEntity(
+    taxpayer = taxpayer_a_fail,
+    particular_taxation_year = date(2023, 1, 1)
+  )
+
+  fixed point precision = 2
+  assertion result = false
+
+scope test_condition_a_fail_not_ccpc #[test]:
+  input dummy: unit
+  output result: boolean
+
+  context taxpayer_a_fail = default_taxpayer with
+    is_ccpc = false;
+    amount_c_125_5_1_a = money(value=49_000_000);
+
+  result = IsExcludedEntity(
+    taxpayer = taxpayer_a_fail,
+    particular_taxation_year = date(2023, 1, 1)
+  )
+
+  fixed point precision = 2
+  assertion result = false
+
+scope test_condition_b_pass #[test]:
+  input dummy: unit
+  output result: boolean
+
+  context taxpayer_b_pass = default_taxpayer with
+    interest_and_financing_expenses = money(value=1_500_000);
+    interest_and_financing_revenues = money(value=600_000);
+
+  result = IsExcludedEntity(
+    taxpayer = taxpayer_b_pass,
+    particular_taxation_year = date(2023, 1, 1)
+  )
+
+  fixed point precision = 2
+  assertion result = true -- 1.5M - 0.6M = 0.9M <= 1M
+
+scope test_condition_b_fail #[test]:
+  input dummy: unit
+  output result: boolean
+
+  context taxpayer_b_fail = default_taxpayer with
+    interest_and_financing_expenses = money(value=2_000_000);
+    interest_and_financing_revenues = money(value=500_000);
+
+  result = IsExcludedEntity(
+    taxpayer = taxpayer_b_fail,
+    particular_taxation_year = date(2023, 1, 1)
+  )
+
+  fixed point precision = 2
+  assertion result = false -- 2M - 0.5M = 1.5M > 1M
+
+scope test_condition_c_pass #[test]:
+  input dummy: unit
+  output result: boolean
+
+  -- This taxpayer meets all conditions for (c)
+  context taxpayer_c_pass = default_taxpayer with
+    business_carried_on_in_canada = true;
+    foreign_affiliates = [{ shares_book_value = money(value=1_000_000); property_fmv = money(value=1_000_000) }];
+
+  result = IsExcludedEntity(
+    taxpayer = taxpayer_c_pass,
+    particular_taxation_year = date(2023, 1, 1)
+  )
+
+  fixed point precision = 2
+  assertion result = true
+
+scope test_condition_c_fail_location #[test]:
+  input dummy: unit
+  output result: boolean
+
+  context taxpayer_c_fail = default_taxpayer with
+    business_carried_on_in_canada = false;
+
+  result = IsExcludedEntity(
+    taxpayer = taxpayer_c_fail,
+    particular_taxation_year = date(2023, 1, 1)
+  )
+
+  fixed point precision = 2
+  assertion result = false
+
+scope test_condition_c_fail_foreign_assets #[test]:
+  input dummy: unit
+  output result: boolean
+
+  context taxpayer_c_fail = default_taxpayer with
+    foreign_affiliates = [{ shares_book_value = money(value=6_000_000); property_fmv = money(value=1_000_000) }];
+
+  result = IsExcludedEntity(
+    taxpayer = taxpayer_c_fail,
+    particular_taxation_year = date(2023, 1, 1)
+  )
+
+  fixed point precision = 2
+  assertion result = false
+```
